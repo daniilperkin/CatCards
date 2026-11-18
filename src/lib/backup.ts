@@ -18,11 +18,22 @@ interface BackupJson {
   images: { id: string; type: string; file: string }[];
 }
 
-export async function exportBackup(db: CatCardsDB = defaultDb): Promise<Blob> {
-  const [decks, cards, images] = await Promise.all([db.decks.toArray(), db.cards.toArray(), db.images.toArray()]);
+export async function exportBackup(db: CatCardsDB = defaultDb, deckId?: string): Promise<Blob> {
+  const [decks, cards] = deckId
+    ? await Promise.all([
+        db.decks.where('id').equals(deckId).toArray(),
+        db.cards.where('deckId').equals(deckId).toArray(),
+      ])
+    : await Promise.all([db.decks.toArray(), db.cards.toArray()]);
+  const referencedImageIds = new Set(
+    cards.flatMap((c) => [c.frontImageId, c.backImageId]).filter((x): x is string => !!x),
+  );
+  const allImages = deckId
+    ? (await db.images.bulkGet([...referencedImageIds])).filter((x): x is { id: string; blob: Blob } => !!x)
+    : await db.images.toArray();
   const files: Record<string, Uint8Array> = {};
   const imageMeta: BackupJson['images'] = [];
-  for (const img of images) {
+  for (const img of allImages) {
     const file = `images/${img.id}`;
     files[file] = new Uint8Array(await img.blob.arrayBuffer());
     imageMeta.push({ id: img.id, type: img.blob.type, file });
@@ -41,6 +52,37 @@ export async function exportBackup(db: CatCardsDB = defaultDb): Promise<Blob> {
     zip(files, { level: 0 }, (err, data) => (err ? reject(err) : resolve(data))),
   );
   return new Blob([bytes as BlobPart], { type: 'application/zip' });
+}
+
+export async function shareOrDownloadBackup(
+  deckId?: string,
+  prefix = 'catcards',
+  db: CatCardsDB = defaultDb,
+): Promise<void> {
+  const blob = await exportBackup(db, deckId);
+  const date = new Date().toISOString().slice(0, 10);
+  const safePrefix =
+    prefix
+      .trim()
+      .replace(/[^\p{L}\p{N}_-]+/gu, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || 'catcards';
+  const name = `${safePrefix}-${date}.zip`;
+  const file = new File([blob], name, { type: 'application/zip' });
+  // Prefer the Android share sheet (save to Drive, Files, Telegram …); fall back to download.
+  if (typeof navigator !== 'undefined' && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: name });
+      return;
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return;
+    }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
 }
 
 export interface ImportResult {
@@ -67,6 +109,9 @@ export async function importBackup(
   const json = JSON.parse(strFromU8(raw)) as BackupJson;
   if (json.format !== BACKUP_FORMAT) throw new Error('not a CatCards backup');
   if (json.version > BACKUP_VERSION) throw new Error('backup from a newer app version');
+  if (!Array.isArray(json.decks) || !Array.isArray(json.cards) || !Array.isArray(json.images)) {
+    throw new Error('invalid backup structure');
+  }
 
   const images = json.images.map((m) => {
     const bytes = files[m.file];
@@ -81,6 +126,15 @@ export async function importBackup(
     await db.images.bulkPut(images);
     await db.decks.bulkPut(json.decks);
     await db.cards.bulkPut(json.cards);
+    if (mode === 'merge') {
+      const allCards = await db.cards.toArray();
+      const usedImages = new Set(
+        allCards.flatMap((c) => [c.frontImageId, c.backImageId]).filter((x): x is string => !!x),
+      );
+      const allImageKeys = await db.images.toCollection().primaryKeys();
+      const orphanIds = allImageKeys.filter((id) => !usedImages.has(id));
+      if (orphanIds.length > 0) await db.images.bulkDelete(orphanIds);
+    }
   });
   return { decks: json.decks.length, cards: json.cards.length, images: images.length };
 }

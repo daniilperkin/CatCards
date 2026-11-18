@@ -40,6 +40,64 @@ describe('backup', () => {
     expect(await b.cards.count()).toBe(1);
   });
 
+  it('exports a single deck and cleans up orphaned images on merge', async () => {
+    const a = new CatCardsDB(`deck-export-${uid()}`);
+    await a.images.bulkAdd([
+      { id: 'img1', blob: new Blob([new Uint8Array([1])], { type: 'image/png' }) },
+      { id: 'img2', blob: new Blob([new Uint8Array([2])], { type: 'image/png' }) },
+    ]);
+    await a.decks.bulkAdd([
+      { id: 'd1', name: 'Deck 1', color: '#f59e0b', createdAt: 1 },
+      { id: 'd2', name: 'Deck 2', color: '#ef4444', createdAt: 2 },
+    ]);
+    await a.cards.bulkAdd([
+      {
+        id: 'c1',
+        deckId: 'd1',
+        frontText: 'F1',
+        frontImageId: 'img1',
+        backText: 'B1',
+        backImageId: null,
+        createdAt: 1,
+        updatedAt: 1,
+        srs: newSrs(),
+      },
+      {
+        id: 'c2',
+        deckId: 'd2',
+        frontText: 'F2',
+        frontImageId: 'img2',
+        backText: 'B2',
+        backImageId: null,
+        createdAt: 2,
+        updatedAt: 2,
+        srs: newSrs(),
+      },
+    ]);
+
+    const singleZip = await exportBackup(a, 'd1');
+    const target = new CatCardsDB(`target-${uid()}`);
+    await target.images.add({ id: 'img-old', blob: new Blob([new Uint8Array([9])], { type: 'image/png' }) });
+    await target.decks.add({ id: 'd1', name: 'Deck 1', color: '#f59e0b', createdAt: 1 });
+    await target.cards.add({
+      id: 'c1',
+      deckId: 'd1',
+      frontText: 'Old',
+      frontImageId: 'img-old',
+      backText: 'Old',
+      backImageId: null,
+      createdAt: 1,
+      updatedAt: 1,
+      srs: newSrs(),
+    });
+
+    const r = await importBackup(singleZip, 'merge', target);
+    expect(r).toEqual({ decks: 1, cards: 1, images: 1 });
+    expect(await target.decks.count()).toBe(1);
+    expect(await target.images.get('img-old')).toBeUndefined();
+    expect(await target.images.get('img1')).toBeDefined();
+  });
+
   it('rejects non-backup zips', async () => {
     const b = new CatCardsDB(`c-${uid()}`);
     await expect(importBackup(new Blob([new Uint8Array([1, 2, 3])]), 'merge', b)).rejects.toThrow();

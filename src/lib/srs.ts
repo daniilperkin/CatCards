@@ -43,6 +43,30 @@ export function review(s: SrsState, grade: Grade, now: number): SrsState {
       last: 'dontKnow',
     };
   }
+  if (s.interval >= 1 && now < s.due) {
+    const scheduledMs = s.interval * DAY;
+    const elapsedMs = Math.max(0, scheduledMs - (s.due - now));
+    const ratio = Math.min(1, elapsedMs / scheduledMs);
+    if (ratio < 0.5) {
+      return {
+        due: now + s.interval * DAY,
+        interval: s.interval,
+        ease: s.ease,
+        reps: s.reps + 1,
+        lapses: s.lapses,
+        last: 'know',
+      };
+    }
+    const scaledInterval = Math.max(s.interval + 1, Math.round(s.interval * (1 + (s.ease - 1) * ratio)));
+    return {
+      due: now + scaledInterval * DAY,
+      interval: scaledInterval,
+      ease: Math.min(MAX_EASE, s.ease + 0.05 * ratio),
+      reps: s.reps + 1,
+      lapses: s.lapses,
+      last: 'know',
+    };
+  }
   const interval = s.interval < 1 ? 1 : Math.max(s.interval + 1, Math.round(s.interval * s.ease));
   return {
     due: now + interval * DAY,
