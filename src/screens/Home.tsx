@@ -6,14 +6,16 @@ import { createDeck, db } from '../lib/db';
 import { useI18n } from '../lib/i18n';
 import { href, navigate } from '../lib/router';
 import { deckStats } from '../lib/stats';
+import { useNow } from '../lib/useNow';
 
 export function Home() {
   const { t } = useI18n();
+  const now = useNow();
   const decks = useLiveQuery(() => db.decks.orderBy('createdAt').toArray(), []);
   const cards = useLiveQuery(() => db.cards.toArray(), []);
   const [creating, setCreating] = useState(false);
 
-  const totalDue = cards ? deckStats(cards).due : 0;
+  const totalDue = cards ? deckStats(cards, now).due : 0;
 
   return (
     <>
@@ -50,7 +52,7 @@ export function Home() {
 
         <ul className="space-y-3">
           {decks?.map((d) => {
-            const s = deckStats(cards?.filter((c) => c.deckId === d.id) ?? []);
+            const s = deckStats(cards?.filter((c) => c.deckId === d.id) ?? [], now);
             return (
               <li key={d.id}>
                 <a

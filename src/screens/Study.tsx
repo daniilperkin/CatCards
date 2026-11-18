@@ -7,6 +7,7 @@ import { href, navigate, type Route } from '../lib/router';
 import { answer, isDone, type SessionState, shuffle as shuffleIds, startSession, undo } from '../lib/session';
 import { type Grade, review, type SrsState } from '../lib/srs';
 import { selectCards } from '../lib/stats';
+import { CardEditor } from './CardEditor';
 
 type StudyRoute = Extract<Route, { name: 'study' }>;
 
@@ -15,6 +16,8 @@ export function Study({ route }: { route: StudyRoute }) {
   const [cards, setCards] = useState<Map<string, Card> | null>(null);
   const [session, setSession] = useState<SessionState | null>(null);
   const [title, setTitle] = useState('');
+  const [runId, setRunId] = useState(0);
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
   /** Previous SRS state per answer, for undo. */
   const srsHistory = useRef<SrsState[]>([]);
   const cardRef = useRef<SwipeCardHandle>(null);
@@ -22,6 +25,7 @@ export function Study({ route }: { route: StudyRoute }) {
 
   const backHref = route.deckId ? href({ name: 'deck', deckId: route.deckId }) : href({ name: 'home' });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runId explicitly triggers a fresh session
   useEffect(() => {
     (async () => {
       const all = route.deckId
@@ -31,10 +35,11 @@ export function Study({ route }: { route: StudyRoute }) {
       setTitle(deck?.name ?? t.allDecks);
       let ids = selectCards(all, route.mode).map((c) => c.id);
       if (route.shuffle) ids = shuffleIds(ids);
+      srsHistory.current = [];
       setCards(new Map(all.map((c) => [c.id, c])));
       setSession(startSession(ids));
     })();
-  }, [route.deckId, route.mode, route.shuffle, t.allDecks]);
+  }, [route.deckId, route.mode, route.shuffle, t.allDecks, runId]);
 
   const onAnswer = useCallback(
     async (grade: Grade) => {
@@ -43,9 +48,10 @@ export function Study({ route }: { route: StudyRoute }) {
       const card = id ? cards.get(id) : undefined;
       if (!card) return;
       busy.current = true;
-      const next = review(card.srs, grade, Date.now());
+      const wasMissed = session.missed.includes(card.id);
+      const next = wasMissed ? card.srs : review(card.srs, grade, Date.now());
       srsHistory.current.push(card.srs);
-      await db.cards.update(card.id, { srs: next });
+      if (!wasMissed) await db.cards.update(card.id, { srs: next });
       setCards(new Map(cards).set(card.id, { ...card, srs: next }));
       setSession(answer(session, grade));
       busy.current = false;
@@ -70,6 +76,7 @@ export function Study({ route }: { route: StudyRoute }) {
 
   // Desktop keyboard shortcuts: ←/→ answer, Space flips (handled by card), Ctrl+Z undo.
   useEffect(() => {
+    if (editingCard) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') cardRef.current?.fling('know');
       else if (e.key === 'ArrowLeft') cardRef.current?.fling('dontKnow');
@@ -81,9 +88,36 @@ export function Study({ route }: { route: StudyRoute }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onUndo]);
+  }, [onUndo, editingCard]);
 
   if (!session || !cards) return null;
+
+  if (editingCard) {
+    return (
+      <CardEditor
+        deckId={editingCard.deckId}
+        cardId={editingCard.id}
+        onDone={async () => {
+          const updated = await db.cards.get(editingCard.id);
+          setEditingCard(null);
+          const staysInScope = updated && (!route.deckId || updated.deckId === route.deckId);
+          if (staysInScope) {
+            setCards(new Map(cards).set(updated.id, updated));
+          } else {
+            const nextCards = new Map(cards);
+            nextCards.delete(editingCard.id);
+            setCards(nextCards);
+            const nextQueue = session.queue.filter((id) => id !== editingCard.id);
+            setSession({
+              ...session,
+              queue: nextQueue,
+              total: Math.max(0, session.total - 1),
+            });
+          }
+        }}
+      />
+    );
+  }
 
   if (session.total === 0) {
     return (
@@ -114,21 +148,24 @@ export function Study({ route }: { route: StudyRoute }) {
             </div>
           </div>
           <div className="flex w-full max-w-xs flex-col gap-2">
-            {repeated > 0 && route.deckId && (
+            {repeated > 0 && (
               <Button
-                onClick={() =>
-                  navigate({
-                    name: 'study',
-                    deckId: route.deckId,
-                    mode: 'unknown',
-                    shuffle: route.shuffle,
-                    reverse: route.reverse,
-                  })
-                }
+                onClick={() => {
+                  if (route.mode === 'unknown') setRunId((r) => r + 1);
+                  else
+                    navigate({
+                      name: 'study',
+                      deckId: route.deckId,
+                      mode: 'unknown',
+                      shuffle: route.shuffle,
+                      reverse: route.reverse,
+                    });
+                }}
               >
                 {t.studyUnknown}
               </Button>
             )}
+            <Button onClick={() => setRunId((r) => r + 1)}>{t.again}</Button>
             <a
               href={backHref}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-4 font-medium text-white"
@@ -153,9 +190,16 @@ export function Study({ route }: { route: StudyRoute }) {
         title={title}
         backHref={backHref}
         right={
-          <span className="pr-2 text-sm text-zinc-500 tabular-nums">
-            {session.queue.length} {t.left}
-          </span>
+          <>
+            <span className="pr-1 text-sm text-zinc-500 tabular-nums">
+              {Math.min(doneCount + 1, session.total)}/{session.total} · {session.queue.length} {t.left}
+            </span>
+            {current && (
+              <IconButton label={t.editCard} onClick={() => setEditingCard(current)}>
+                <Icon.Pencil className="size-5" />
+              </IconButton>
+            )}
+          </>
         }
       />
       <div className="px-4">

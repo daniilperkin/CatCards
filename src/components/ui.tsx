@@ -1,13 +1,34 @@
 import type { ButtonHTMLAttributes, ReactNode, SVGProps } from 'react';
+import { useI18n } from '../lib/i18n';
 
-export function Header({ title, backHref, right }: { title: ReactNode; backHref?: string; right?: ReactNode }) {
+export function Header({
+  title,
+  backHref,
+  onBack,
+  right,
+}: {
+  title: ReactNode;
+  backHref?: string;
+  onBack?: () => void;
+  right?: ReactNode;
+}) {
+  const { t } = useI18n();
   return (
     <header className="safe-top sticky top-0 z-10 bg-zinc-50/90 backdrop-blur dark:bg-zinc-900/90">
       <div className="flex h-14 items-center gap-2 px-3">
-        {backHref ? (
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label={t.back}
+            className="-ml-1 grid size-10 place-items-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800"
+          >
+            <Icon.ChevronLeft className="size-6" />
+          </button>
+        ) : backHref ? (
           <a
             href={backHref}
-            aria-label="back"
+            aria-label={t.back}
             className="-ml-1 grid size-10 place-items-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800"
           >
             <Icon.ChevronLeft className="size-6" />
@@ -175,6 +196,19 @@ export const Icon = {
   Pencil: (p: SVGProps<SVGSVGElement>) => (
     <svg {...base(p)}>
       <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    </svg>
+  ),
+  Search: (p: SVGProps<SVGSVGElement>) => (
+    <svg {...base(p)}>
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  ),
+  Download: (p: SVGProps<SVGSVGElement>) => (
+    <svg {...base(p)}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" x2="12" y1="15" y2="3" />
     </svg>
   ),
 };

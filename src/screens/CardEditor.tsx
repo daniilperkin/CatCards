@@ -1,3 +1,4 @@
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Header, Icon, IconButton } from '../components/ui';
 import { db, deleteCard, upsertCard } from '../lib/db';
@@ -13,8 +14,10 @@ interface SideState {
 
 const empty: SideState = { text: '', image: undefined };
 
-export function CardEditor({ deckId, cardId }: { deckId: string; cardId: string | null }) {
+export function CardEditor({ deckId, cardId, onDone }: { deckId: string; cardId: string | null; onDone?: () => void }) {
   const { t } = useI18n();
+  const decks = useLiveQuery(() => db.decks.orderBy('createdAt').toArray(), []);
+  const [targetDeckId, setTargetDeckId] = useState(deckId);
   const [front, setFront] = useState<SideState>(empty);
   const [back, setBack] = useState<SideState>(empty);
   const [stored, setStored] = useState<{ front: string | null; back: string | null }>({ front: null, back: null });
@@ -24,42 +27,52 @@ export function CardEditor({ deckId, cardId }: { deckId: string; cardId: string 
   const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
+    setTargetDeckId(deckId);
     if (!cardId) return;
     db.cards.get(cardId).then((c) => {
-      if (!c) return navigate({ name: 'deck', deckId }, true);
+      if (!c) return onDone ? onDone() : navigate({ name: 'deck', deckId }, true);
+      setTargetDeckId(c.deckId);
       setFront({ text: c.frontText, image: undefined });
       setBack({ text: c.backText, image: undefined });
       setStored({ front: c.frontImageId, back: c.backImageId });
       setLoaded(true);
     });
-  }, [cardId, deckId]);
+  }, [cardId, deckId, onDone]);
 
-  const hasFront = (s: SideState, storedId: string | null) =>
+  const hasSide = (s: SideState, storedId: string | null) =>
     s.text.trim() !== '' || s.image instanceof Blob || (s.image === undefined && !!storedId);
 
   async function save(next: boolean) {
-    if (!hasFront(front, stored.front)) {
+    if (!hasSide(front, stored.front)) {
       setError(t.cardNeedsFront);
+      return;
+    }
+    if (!hasSide(back, stored.back)) {
+      setError(t.cardNeedsBack);
       return;
     }
     setSaving(true);
     try {
-      await upsertCard(deckId, cardId, {
+      await upsertCard(targetDeckId, cardId, {
         frontText: front.text.trim(),
         frontImage: front.image,
         backText: back.text.trim(),
         backImage: back.image,
       });
+      if (onDone) {
+        onDone();
+        return;
+      }
       if (next) {
         setFront(empty);
         setBack(empty);
         setStored({ front: null, back: null });
         setError('');
         setFormKey((k) => k + 1);
-        if (cardId) navigate({ name: 'card', deckId, cardId: null }, true);
+        if (cardId) navigate({ name: 'card', deckId: targetDeckId, cardId: null }, true);
         window.scrollTo({ top: 0 });
       } else {
-        navigate({ name: 'deck', deckId }, true);
+        navigate({ name: 'deck', deckId: targetDeckId }, true);
       }
     } finally {
       setSaving(false);
@@ -72,7 +85,8 @@ export function CardEditor({ deckId, cardId }: { deckId: string; cardId: string 
     <>
       <Header
         title={cardId ? t.editCard : t.newCard}
-        backHref={href({ name: 'deck', deckId })}
+        backHref={onDone ? undefined : href({ name: 'deck', deckId })}
+        onBack={onDone}
         right={
           cardId && (
             <IconButton
@@ -81,7 +95,8 @@ export function CardEditor({ deckId, cardId }: { deckId: string; cardId: string 
               onClick={async () => {
                 if (confirm(t.confirmDeleteCard)) {
                   await deleteCard(cardId);
-                  navigate({ name: 'deck', deckId }, true);
+                  if (onDone) onDone();
+                  else navigate({ name: 'deck', deckId }, true);
                 }
               }}
             >
@@ -91,6 +106,23 @@ export function CardEditor({ deckId, cardId }: { deckId: string; cardId: string 
         }
       />
       <main key={formKey} className="safe-bottom flex-1 space-y-4 px-4 pb-6">
+        {decks && decks.length > 1 && (
+          <label className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
+            <span className="text-sm font-semibold tracking-wide text-zinc-500 uppercase">{t.deckLabel}</span>
+            <select
+              value={targetDeckId}
+              onChange={(e) => setTargetDeckId(e.target.value)}
+              aria-label={t.deckLabel}
+              className="min-w-0 rounded-xl bg-zinc-100 px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-accent dark:bg-zinc-900"
+            >
+              {decks.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <SideEditor
           title={t.front}
           placeholder={t.frontPlaceholder}
@@ -106,12 +138,15 @@ export function CardEditor({ deckId, cardId }: { deckId: string; cardId: string 
           placeholder={t.backPlaceholder}
           state={back}
           storedImageId={stored.back}
-          onChange={setBack}
+          onChange={(s) => {
+            setBack(s);
+            setError('');
+          }}
           rows={6}
         />
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex gap-2">
-          {!cardId && (
+          {!cardId && !onDone && (
             <Button className="flex-1" disabled={saving} onClick={() => save(true)}>
               {t.saveAndNext}
             </Button>

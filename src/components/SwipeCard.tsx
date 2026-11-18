@@ -25,7 +25,15 @@ export const SwipeCard = forwardRef<SwipeCardHandle, { card: Card; reverse: bool
     const [leaving, setLeaving] = useState<Grade | null>(null);
     const start = useRef<{ x: number; y: number; t: number; id: number } | null>(null);
     const moved = useRef(false);
+    const flingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const el = useRef<HTMLDivElement>(null);
+
+    const clearFlingTimer = () => {
+      if (flingTimer.current !== null) {
+        clearTimeout(flingTimer.current);
+        flingTimer.current = null;
+      }
+    };
 
     const fling = (g: Grade) => {
       if (leaving) return;
@@ -33,16 +41,22 @@ export const SwipeCard = forwardRef<SwipeCardHandle, { card: Card; reverse: bool
       setDragging(false);
       const w = el.current?.offsetWidth ?? 400;
       setDx(g === 'know' ? w * 1.6 : -w * 1.6);
-      setTimeout(() => onAnswer(g), FLING_MS);
+      clearFlingTimer();
+      flingTimer.current = setTimeout(() => {
+        flingTimer.current = null;
+        onAnswer(g);
+      }, FLING_MS);
     };
     useImperativeHandle(ref, () => ({ fling, flip: () => setFlipped((f) => !f) }));
 
     // Reset state if the same component instance is reused for another card.
     // biome-ignore lint/correctness/useExhaustiveDependencies: reset on card change only
     useEffect(() => {
+      clearFlingTimer();
       setFlipped(false);
       setDx(0);
       setLeaving(null);
+      return clearFlingTimer;
     }, [card.id]);
 
     const onPointerDown = (e: React.PointerEvent) => {
@@ -121,8 +135,8 @@ export const SwipeCard = forwardRef<SwipeCardHandle, { card: Card; reverse: bool
         }}
       >
         <div className={`flip-inner ${flipped ? 'is-flipped' : ''}`}>
-          <Face side={a} hint={t.tapToFlip} />
-          <Face side={b} back />
+          <Face side={a} hint={t.tapToFlip} active={!flipped} />
+          <Face side={b} back active={flipped} />
         </div>
         {/* swipe feedback */}
         <div
@@ -157,17 +171,19 @@ export function CardPreview({ card, reverse }: { card: Card; reverse: boolean })
 function Face({
   side,
   back = false,
+  active = true,
   hint,
 }: {
   side: { text: string; imageId: string | null };
   back?: boolean;
+  active?: boolean;
   hint?: string;
 }) {
   const url = useImageUrl(side.imageId);
   const textOnly = !url;
   return (
     <div
-      className={`flip-face flex flex-col overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700 ${back ? 'flip-back' : ''}`}
+      className={`flip-face flex flex-col overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700 ${back ? 'flip-back' : ''} ${active ? '' : 'pointer-events-none'}`}
     >
       {url && (
         <div className="min-h-0 flex-1 bg-zinc-100 dark:bg-zinc-900">

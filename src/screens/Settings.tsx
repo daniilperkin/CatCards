@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Header } from '../components/ui';
-import { exportBackup, importBackup } from '../lib/backup';
+import { importBackup, shareOrDownloadBackup } from '../lib/backup';
 import { type Lang, useI18n } from '../lib/i18n';
 import { href } from '../lib/router';
 
@@ -21,24 +21,7 @@ export function Settings() {
   async function doExport() {
     setBusy(true);
     try {
-      const blob = await exportBackup();
-      const date = new Date().toISOString().slice(0, 10);
-      const name = `catcards-${date}.zip`;
-      const file = new File([blob], name, { type: 'application/zip' });
-      // Prefer the Android share sheet (save to Drive, Files, Telegram …); fall back to download.
-      if (navigator.canShare?.({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], title: name });
-          return;
-        } catch (e) {
-          if ((e as Error).name === 'AbortError') return;
-        }
-      }
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = name;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+      await shareOrDownloadBackup();
     } finally {
       setBusy(false);
     }

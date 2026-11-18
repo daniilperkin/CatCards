@@ -2,20 +2,25 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { DeckForm } from '../components/DeckForm';
 import { Button, Header, Icon, IconButton, ProgressBar, Toggle } from '../components/ui';
+import { shareOrDownloadBackup } from '../lib/backup';
 import { type Card, db, deleteDeck, resetDeckProgress } from '../lib/db';
 import { useI18n } from '../lib/i18n';
 import { href, navigate, type StudyMode } from '../lib/router';
 import { deckStats, selectCards } from '../lib/stats';
 import { useImageUrl } from '../lib/useImageUrl';
+import { useNow } from '../lib/useNow';
 
 export function DeckView({ deckId }: { deckId: string }) {
   const { t } = useI18n();
+  const now = useNow();
   const deck = useLiveQuery(() => db.decks.get(deckId), [deckId]);
   const cards = useLiveQuery(() => db.cards.where('deckId').equals(deckId).sortBy('createdAt'), [deckId]);
   const [mode, setMode] = useState<StudyMode>('due');
   const [shuffle, setShuffle] = useState(false);
   const [reverse, setReverse] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [query, setQuery] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   if (deck === undefined && cards !== undefined) {
     // deck deleted or unknown id
@@ -23,8 +28,12 @@ export function DeckView({ deckId }: { deckId: string }) {
   }
   if (!deck || !cards) return null;
 
-  const s = deckStats(cards);
-  const studyCount = selectCards(cards, mode).length;
+  const s = deckStats(cards, now);
+  const studyCount = selectCards(cards, mode, now).length;
+  const q = query.trim().toLowerCase();
+  const visibleCards = q
+    ? cards.filter((c) => c.frontText.toLowerCase().includes(q) || c.backText.toLowerCase().includes(q))
+    : cards;
   const modes: { id: StudyMode; label: string; count: number }[] = [
     { id: 'due', label: t.studyDue, count: s.due },
     { id: 'unknown', label: t.studyUnknown, count: s.unknown },
@@ -56,6 +65,21 @@ export function DeckView({ deckId }: { deckId: string }) {
               }}
             />
             <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                disabled={exporting}
+                onClick={async () => {
+                  setExporting(true);
+                  try {
+                    await shareOrDownloadBackup(deck.id, deck.name);
+                  } finally {
+                    setExporting(false);
+                  }
+                }}
+              >
+                <Icon.Download className="size-4" />
+                {t.exportDeck}
+              </Button>
               <Button
                 variant="ghost"
                 onClick={async () => {
@@ -123,13 +147,40 @@ export function DeckView({ deckId }: { deckId: string }) {
         <h2 className="pt-2 text-sm font-semibold tracking-wide text-zinc-500 uppercase">
           {t.cards} ({cards.length})
         </h2>
+        {cards.length > 0 && (
+          <div className="relative">
+            <Icon.Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-zinc-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.searchCards}
+              aria-label={t.searchCards}
+              className="h-11 w-full rounded-xl bg-white pr-10 pl-10 text-base shadow-sm ring-1 ring-zinc-200 outline-none focus:ring-2 focus:ring-accent dark:bg-zinc-800 dark:ring-zinc-700"
+            />
+            {query && (
+              <IconButton
+                label={t.cancel}
+                onClick={() => setQuery('')}
+                className="absolute top-1/2 right-1 size-9 -translate-y-1/2"
+              >
+                <Icon.X className="size-4" />
+              </IconButton>
+            )}
+          </div>
+        )}
         {cards.length === 0 && (
           <p className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
             {t.noCards}
           </p>
         )}
+        {cards.length > 0 && visibleCards.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
+            {t.noSearchResults}
+          </p>
+        )}
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {cards.map((c) => (
+          {visibleCards.map((c) => (
             <CardThumb key={c.id} card={c} />
           ))}
         </ul>
