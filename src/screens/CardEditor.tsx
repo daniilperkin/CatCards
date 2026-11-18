@@ -107,13 +107,13 @@ export function CardEditor({ deckId, cardId, onDone }: { deckId: string; cardId:
       />
       <main key={formKey} className="safe-bottom flex-1 space-y-4 px-4 pb-6">
         {decks && decks.length > 1 && (
-          <label className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
+          <label className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-pink-200/80 dark:bg-[#261a24] dark:ring-pink-900/50">
             <span className="text-sm font-semibold tracking-wide text-zinc-500 uppercase">{t.deckLabel}</span>
             <select
               value={targetDeckId}
               onChange={(e) => setTargetDeckId(e.target.value)}
               aria-label={t.deckLabel}
-              className="min-w-0 rounded-xl bg-zinc-100 px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-accent dark:bg-zinc-900"
+              className="min-w-0 rounded-xl bg-pink-50/70 px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-accent dark:bg-[#191118]"
             >
               {decks.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -189,10 +189,10 @@ function SideEditor({
   };
 
   return (
-    <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
+    <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-pink-200/80 dark:bg-[#261a24] dark:ring-pink-900/50">
       <h2 className="text-sm font-semibold tracking-wide text-zinc-500 uppercase">{title}</h2>
       {url ? (
-        <div className="relative overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900">
+        <div className="relative overflow-hidden rounded-xl bg-pink-50/60 dark:bg-[#191118]">
           <img src={url} alt="" className="max-h-80 w-full object-contain" />
           <IconButton
             label={t.removePhoto}
@@ -221,7 +221,7 @@ function SideEditor({
         placeholder={placeholder}
         aria-label={`${title} ${t.text}`}
         rows={rows}
-        className="w-full resize-y rounded-xl bg-zinc-100 p-3 text-base outline-none focus:ring-2 focus:ring-accent dark:bg-zinc-900"
+        className="w-full resize-y rounded-xl bg-pink-50/70 p-3 text-base outline-none focus:ring-2 focus:ring-accent dark:bg-[#191118]"
       />
     </section>
   );

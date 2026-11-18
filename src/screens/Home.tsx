@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { DeckForm } from '../components/DeckForm';
-import { Button, Header, Icon, IconButton, ProgressBar } from '../components/ui';
+import { Button, CatMascot, Header, Icon, IconButton, ProgressBar } from '../components/ui';
 import { createDeck, db } from '../lib/db';
 import { useI18n } from '../lib/i18n';
 import { href, navigate } from '../lib/router';
@@ -25,7 +25,7 @@ export function Home() {
           <a
             href={href({ name: 'settings' })}
             aria-label={t.settings}
-            className="grid size-10 place-items-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800"
+            className="grid size-10 place-items-center rounded-full hover:bg-pink-100/70 dark:hover:bg-pink-950/50"
           >
             <Icon.Settings className="size-5" />
           </a>
@@ -38,16 +38,17 @@ export function Home() {
           disabled={!totalDue}
           onClick={() => navigate({ name: 'study', deckId: null, mode: 'due', shuffle: false, reverse: false })}
         >
-          <Icon.Play className="size-5" />
+          <Icon.Paw className="size-5" />
           {totalDue ? `${t.studyAllDue} (${totalDue})` : t.nothingDue}
         </Button>
 
         <h2 className="pt-2 text-sm font-semibold tracking-wide text-zinc-500 uppercase">{t.decks}</h2>
 
         {decks && decks.length === 0 && !creating && (
-          <p className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
-            {t.noDecks}
-          </p>
+          <div className="rounded-2xl border border-dashed border-pink-300 bg-white/60 p-6 text-center text-zinc-500 dark:border-pink-900/60 dark:bg-[#261a24]/60">
+            <CatMascot mood="curious" className="mb-2 size-28" />
+            <p>{t.noDecks}</p>
+          </div>
         )}
 
         <ul className="space-y-3">
@@ -57,7 +58,7 @@ export function Home() {
               <li key={d.id}>
                 <a
                   href={href({ name: 'deck', deckId: d.id })}
-                  className="block rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 transition active:scale-[0.99] dark:bg-zinc-800 dark:ring-zinc-700"
+                  className="block rounded-2xl bg-white p-4 shadow-sm ring-1 ring-pink-200/80 transition active:scale-[0.99] dark:bg-[#261a24] dark:ring-pink-900/50"
                 >
                   <div className="flex items-center gap-3">
                     <span className="size-3 shrink-0 rounded-full" style={{ background: d.color }} />

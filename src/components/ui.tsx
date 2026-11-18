@@ -14,14 +14,14 @@ export function Header({
 }) {
   const { t } = useI18n();
   return (
-    <header className="safe-top sticky top-0 z-10 bg-zinc-50/90 backdrop-blur dark:bg-zinc-900/90">
+    <header className="safe-top sticky top-0 z-10 border-b border-pink-200/50 bg-white/80 backdrop-blur-md dark:border-pink-950/50 dark:bg-[#191118]/85">
       <div className="flex h-14 items-center gap-2 px-3">
         {onBack ? (
           <button
             type="button"
             onClick={onBack}
             aria-label={t.back}
-            className="-ml-1 grid size-10 place-items-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800"
+            className="-ml-1 grid size-10 place-items-center rounded-full hover:bg-pink-100/70 dark:hover:bg-pink-950/50"
           >
             <Icon.ChevronLeft className="size-6" />
           </button>
@@ -29,12 +29,12 @@ export function Header({
           <a
             href={backHref}
             aria-label={t.back}
-            className="-ml-1 grid size-10 place-items-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800"
+            className="-ml-1 grid size-10 place-items-center rounded-full hover:bg-pink-100/70 dark:hover:bg-pink-950/50"
           >
             <Icon.ChevronLeft className="size-6" />
           </a>
         ) : (
-          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="ml-1 size-8 rounded-lg" />
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="ml-1 size-8 rounded-lg shadow-xs" />
         )}
         <h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</h1>
         <div className="flex items-center gap-1">{right}</div>
@@ -45,10 +45,10 @@ export function Header({
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 const variants: Record<Variant, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-strong active:scale-[0.98]',
+  primary: 'bg-accent text-white shadow-sm shadow-pink-500/25 hover:bg-accent-strong active:scale-[0.98]',
   secondary:
-    'bg-white text-zinc-900 ring-1 ring-zinc-200 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-700',
-  ghost: 'text-zinc-700 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800',
+    'bg-white text-zinc-900 ring-1 ring-pink-200/80 hover:bg-pink-50/70 dark:bg-[#261a24] dark:text-pink-50 dark:ring-pink-900/50 dark:hover:bg-pink-950/60',
+  ghost: 'text-zinc-700 hover:bg-pink-100/60 dark:text-pink-200 dark:hover:bg-pink-950/50',
   danger: 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950',
 };
 
@@ -90,7 +90,7 @@ export function IconButton({
 
 export function ProgressBar({ value, color = 'var(--color-accent)' }: { value: number; color?: string }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-pink-100 dark:bg-pink-950/60">
       <div
         className="h-full rounded-full transition-[width]"
         style={{ width: `${Math.round(Math.max(0, Math.min(1, value)) * 100)}%`, background: color }}
@@ -211,4 +211,80 @@ export const Icon = {
       <line x1="12" x2="12" y1="15" y2="3" />
     </svg>
   ),
+  Paw: (p: SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...p}>
+      <ellipse cx="12" cy="16.5" rx="5.2" ry="4.2" />
+      <circle cx="6.2" cy="10.5" r="2.2" />
+      <circle cx="9.8" cy="8" r="2.2" />
+      <circle cx="14.2" cy="8" r="2.2" />
+      <circle cx="17.8" cy="10.5" r="2.2" />
+    </svg>
+  ),
 };
+
+export function CatMascot({
+  mood = 'curious',
+  className = 'size-28',
+}: {
+  mood?: 'curious' | 'cheer';
+  className?: string;
+}) {
+  return (
+    <svg viewBox="0 0 160 140" className={`mx-auto select-none ${className}`} aria-hidden>
+      {mood === 'cheer' && (
+        <g fill="#f472b6">
+          <path d="M24 34 C24 29 17 29 17 34 C17 39 24 43 24 43 C24 43 31 39 31 34 C31 29 24 29 24 34 Z" />
+          <path d="M136 28 C136 24 130 24 130 28 C130 32 136 36 136 36 C136 36 142 32 142 28 C142 24 136 24 136 28 Z" />
+          <circle cx="34" cy="18" r="3" fill="#fbcfe8" />
+          <circle cx="126" cy="46" r="3.5" fill="#fbcfe8" />
+        </g>
+      )}
+      {/* Ears + Head */}
+      <path
+        d="M42 54 L36 16 L66 38 Q80 34 94 38 L124 16 L118 54 Q128 72 124 92 Q118 122 80 124 Q42 122 36 92 Q32 72 42 54 Z"
+        fill="#ffffff"
+        stroke="#f9a8d4"
+        strokeWidth="3.5"
+      />
+      {/* Pink inner ears */}
+      <path d="M47 50 L43 26 L63 41 Z" fill="#f9a8d4" />
+      <path d="M113 50 L117 26 L97 41 Z" fill="#f9a8d4" />
+      {/* Rosy cheeks */}
+      <ellipse cx="54" cy="84" rx="9" ry="5.5" fill="#f9a8d4" opacity="0.85" />
+      <ellipse cx="106" cy="84" rx="9" ry="5.5" fill="#f9a8d4" opacity="0.85" />
+      {/* Eyes */}
+      {mood === 'cheer' ? (
+        <g stroke="#3f1d38" strokeWidth="3.5" fill="none" strokeLinecap="round">
+          <path d="M56 72 Q63 63 70 72" />
+          <path d="M90 72 Q97 63 104 72" />
+        </g>
+      ) : (
+        <g>
+          <circle cx="63" cy="70" r="6.5" fill="#3f1d38" />
+          <circle cx="61" cy="68" r="2.2" fill="#ffffff" />
+          <circle cx="97" cy="70" r="6.5" fill="#3f1d38" />
+          <circle cx="95" cy="68" r="2.2" fill="#ffffff" />
+        </g>
+      )}
+      {/* Pink nose & :3 mouth */}
+      <path d="M75 82 Q80 79 85 82 L80 89 Z" fill="#ec4899" />
+      <path
+        d="M80 88 Q75 96 67 93 M80 88 Q85 96 93 93"
+        stroke="#3f1d38"
+        strokeWidth="3"
+        fill="none"
+        strokeLinecap="round"
+      />
+      {/* Whiskers */}
+      <path
+        d="M44 77 L26 73 M43 85 L24 86 M116 77 L134 73 M117 85 L136 86"
+        stroke="#f472b6"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      {/* Paws */}
+      <ellipse cx="58" cy="122" rx="11" ry="8" fill="#ffffff" stroke="#f9a8d4" strokeWidth="3" />
+      <ellipse cx="102" cy="122" rx="11" ry="8" fill="#ffffff" stroke="#f9a8d4" strokeWidth="3" />
+    </svg>
+  );
+}

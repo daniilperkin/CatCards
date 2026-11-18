@@ -21,7 +21,7 @@ export function DeckForm({
   const [color, setColor] = useState(initialColor);
   return (
     <form
-      className="space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700"
+      className="space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-pink-200/80 dark:bg-[#261a24] dark:ring-pink-900/50"
       onSubmit={(e) => {
         e.preventDefault();
         if (name.trim()) onSubmit(name.trim(), color);
@@ -34,7 +34,7 @@ export function DeckForm({
         onChange={(e) => setName(e.target.value)}
         placeholder={t.deckName}
         aria-label={t.deckName}
-        className="h-12 w-full rounded-xl bg-zinc-100 px-3 text-base outline-none focus:ring-2 focus:ring-accent dark:bg-zinc-900"
+        className="h-12 w-full rounded-xl bg-pink-50/70 px-3 text-base outline-none focus:ring-2 focus:ring-accent dark:bg-[#191118]"
       />
       <div className="flex flex-wrap gap-2">
         {DECK_COLORS.map((c) => (

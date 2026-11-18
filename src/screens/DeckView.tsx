@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { DeckForm } from '../components/DeckForm';
-import { Button, Header, Icon, IconButton, ProgressBar, Toggle } from '../components/ui';
+import { Button, CatMascot, Header, Icon, IconButton, ProgressBar, Toggle } from '../components/ui';
 import { shareOrDownloadBackup } from '../lib/backup';
 import { type Card, db, deleteDeck, resetDeckProgress } from '../lib/db';
 import { useI18n } from '../lib/i18n';
@@ -104,7 +104,7 @@ export function DeckView({ deckId }: { deckId: string }) {
           </div>
         )}
 
-        <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
+        <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-pink-200/80 dark:bg-[#261a24] dark:ring-pink-900/50">
           <div className="grid grid-cols-3 text-center">
             <Stat value={s.total} label={t.cards} />
             <Stat value={s.due} label={t.due} />
@@ -115,7 +115,7 @@ export function DeckView({ deckId }: { deckId: string }) {
             <span className="tabular-nums">{Math.round(s.progress * 100)}%</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
+          <div className="grid grid-cols-3 gap-1 rounded-xl bg-pink-50/80 p-1 dark:bg-[#191118]">
             {modes.map((m) => (
               <button
                 key={m.id}
@@ -123,7 +123,7 @@ export function DeckView({ deckId }: { deckId: string }) {
                 aria-pressed={mode === m.id}
                 onClick={() => setMode(m.id)}
                 className={`min-h-11 rounded-lg px-1 text-sm leading-tight font-medium transition ${
-                  mode === m.id ? 'bg-white shadow-sm dark:bg-zinc-700' : 'text-zinc-500'
+                  mode === m.id ? 'bg-white shadow-sm dark:bg-[#352232]' : 'text-zinc-500'
                 }`}
               >
                 {m.label}
@@ -139,7 +139,7 @@ export function DeckView({ deckId }: { deckId: string }) {
             disabled={!studyCount}
             onClick={() => navigate({ name: 'study', deckId, mode, shuffle, reverse })}
           >
-            <Icon.Play className="size-5" />
+            <Icon.Paw className="size-5" />
             {studyCount ? `${t.start} (${studyCount})` : t.noCardsToStudy}
           </Button>
         </section>
@@ -156,7 +156,7 @@ export function DeckView({ deckId }: { deckId: string }) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t.searchCards}
               aria-label={t.searchCards}
-              className="h-11 w-full rounded-xl bg-white pr-10 pl-10 text-base shadow-sm ring-1 ring-zinc-200 outline-none focus:ring-2 focus:ring-accent dark:bg-zinc-800 dark:ring-zinc-700"
+              className="h-11 w-full rounded-xl bg-white pr-10 pl-10 text-base shadow-sm ring-1 ring-pink-200/80 outline-none focus:ring-2 focus:ring-accent dark:bg-[#261a24] dark:ring-pink-900/50"
             />
             {query && (
               <IconButton
@@ -170,12 +170,13 @@ export function DeckView({ deckId }: { deckId: string }) {
           </div>
         )}
         {cards.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
-            {t.noCards}
-          </p>
+          <div className="rounded-2xl border border-dashed border-pink-300 bg-white/60 p-6 text-center text-zinc-500 dark:border-pink-900/60 dark:bg-[#261a24]/60">
+            <CatMascot mood="curious" className="mb-2 size-24" />
+            <p>{t.noCards}</p>
+          </div>
         )}
         {cards.length > 0 && visibleCards.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
+          <p className="rounded-2xl border border-dashed border-pink-300 p-8 text-center text-zinc-500 dark:border-pink-900/60">
             {t.noSearchResults}
           </p>
         )}
@@ -190,7 +191,7 @@ export function DeckView({ deckId }: { deckId: string }) {
         <a
           href={href({ name: 'card', deckId, cardId: null })}
           aria-label={t.newCard}
-          className="pointer-events-auto grid size-14 place-items-center rounded-full bg-accent text-white shadow-lg hover:bg-accent-strong"
+          className="pointer-events-auto grid size-14 place-items-center rounded-full bg-accent text-white shadow-lg shadow-pink-500/30 hover:bg-accent-strong"
         >
           <Icon.Plus className="size-7" />
         </a>
@@ -214,7 +215,7 @@ function CardThumb({ card }: { card: Card }) {
     <li>
       <a
         href={href({ name: 'card', deckId: card.deckId, cardId: card.id })}
-        className="flex aspect-[3/4] flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700"
+        className="flex aspect-[3/4] flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-pink-200/80 dark:bg-[#261a24] dark:ring-pink-900/50"
       >
         {url ? (
           <img src={url} alt="" className="min-h-0 flex-1 object-cover" loading="lazy" />

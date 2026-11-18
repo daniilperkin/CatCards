@@ -45,7 +45,7 @@ export const db = new CatCardsDB();
 
 export const uid = () => crypto.randomUUID();
 
-export const DECK_COLORS = ['#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '#84cc16'];
+export const DECK_COLORS = ['#ec4899', '#f43f5e', '#d946ef', '#a855f7', '#fb7185', '#f59e0b', '#3b82f6', '#10b981'];
 
 export async function createDeck(name: string, color: string): Promise<string> {
   const id = uid();

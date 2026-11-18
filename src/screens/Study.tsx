@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CardPreview, SwipeCard, type SwipeCardHandle } from '../components/SwipeCard';
-import { Button, Header, Icon, IconButton, ProgressBar } from '../components/ui';
+import { Button, CatMascot, Header, Icon, IconButton, ProgressBar } from '../components/ui';
 import { type Card, db } from '../lib/db';
 import { useI18n } from '../lib/i18n';
 import { href, navigate, type Route } from '../lib/router';
@@ -123,7 +123,10 @@ export function Study({ route }: { route: StudyRoute }) {
     return (
       <>
         <Header title={title} backHref={backHref} />
-        <main className="grid flex-1 place-items-center p-6 text-center text-zinc-500">{t.noCardsToStudy}</main>
+        <main className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center text-zinc-500">
+          <CatMascot mood="curious" className="size-28" />
+          <p>{t.noCardsToStudy}</p>
+        </main>
       </>
     );
   }
@@ -134,8 +137,8 @@ export function Study({ route }: { route: StudyRoute }) {
     return (
       <>
         <Header title={title} backHref={backHref} />
-        <main className="safe-bottom flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
-          <div className="text-6xl">😺</div>
+        <main className="safe-bottom flex flex-1 flex-col items-center justify-center gap-5 p-6 text-center">
+          <CatMascot mood="cheer" className="size-32" />
           <h2 className="text-3xl font-bold">{t.sessionDone}</h2>
           <div className="grid w-full max-w-xs grid-cols-2 gap-3">
             <div className="rounded-2xl bg-emerald-500/10 p-4">

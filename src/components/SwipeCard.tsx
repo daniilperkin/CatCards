@@ -3,6 +3,7 @@ import type { Card } from '../lib/db';
 import { useI18n } from '../lib/i18n';
 import type { Grade } from '../lib/srs';
 import { useImageUrl } from '../lib/useImageUrl';
+import { Icon } from './ui';
 
 export interface SwipeCardHandle {
   fling: (grade: Grade) => void;
@@ -183,10 +184,11 @@ function Face({
   const textOnly = !url;
   return (
     <div
-      className={`flip-face flex flex-col overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700 ${back ? 'flip-back' : ''} ${active ? '' : 'pointer-events-none'}`}
+      className={`flip-face flex flex-col overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-pink-200/90 dark:bg-[#261a24] dark:ring-pink-900/50 ${back ? 'flip-back' : ''} ${active ? '' : 'pointer-events-none'}`}
     >
+      <Icon.Paw className="pointer-events-none absolute right-4 bottom-4 size-12 rotate-12 text-pink-300/25 dark:text-pink-400/10" />
       {url && (
-        <div className="min-h-0 flex-1 bg-zinc-100 dark:bg-zinc-900">
+        <div className="min-h-0 flex-1 bg-pink-50/50 dark:bg-[#191118]">
           <img src={url} alt="" draggable={false} className="h-full w-full object-contain" />
         </div>
       )}
@@ -202,7 +204,12 @@ function Face({
         </div>
       )}
       {!url && !side.text && <div className="flex-1" />}
-      {hint && <div className="pb-3 text-center text-xs text-zinc-400">{hint}</div>}
+      {hint && (
+        <div className="flex items-center justify-center gap-1.5 pb-3 text-center text-xs text-pink-400 dark:text-pink-300/60">
+          <Icon.Paw className="size-3.5" />
+          <span>{hint}</span>
+        </div>
+      )}
     </div>
   );
 }
