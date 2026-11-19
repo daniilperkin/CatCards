@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { DeckForm } from '../components/DeckForm';
+import { PdfExportDialog } from '../components/PdfExportDialog';
 import { Button, CatMascot, Header, Icon, IconButton, ProgressBar, Toggle } from '../components/ui';
 import { shareOrDownloadBackup } from '../lib/backup';
 import { type Card, db, deleteDeck, resetDeckProgress } from '../lib/db';
@@ -19,6 +20,7 @@ export function DeckView({ deckId }: { deckId: string }) {
   const [shuffle, setShuffle] = useState(false);
   const [reverse, setReverse] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [pdfOpen, setPdfOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [exporting, setExporting] = useState(false);
 
@@ -46,9 +48,16 @@ export function DeckView({ deckId }: { deckId: string }) {
         title={deck.name}
         backHref={href({ name: 'home' })}
         right={
-          <IconButton label={t.edit} onClick={() => setEditing((v) => !v)}>
-            <Icon.Pencil className="size-5" />
-          </IconButton>
+          <>
+            {cards.length > 0 && (
+              <IconButton label={t.exportPdf} onClick={() => setPdfOpen(true)}>
+                <Icon.FileText className="size-5" />
+              </IconButton>
+            )}
+            <IconButton label={t.edit} onClick={() => setEditing((v) => !v)}>
+              <Icon.Pencil className="size-5" />
+            </IconButton>
+          </>
         }
       />
       <main className="safe-bottom flex-1 space-y-4 px-4 pb-24">
@@ -80,6 +89,12 @@ export function DeckView({ deckId }: { deckId: string }) {
                 <Icon.Download className="size-4" />
                 {t.exportDeck}
               </Button>
+              {cards.length > 0 && (
+                <Button variant="secondary" onClick={() => setPdfOpen(true)}>
+                  <Icon.FileText className="size-4" />
+                  {t.exportPdf}
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 onClick={async () => {
@@ -196,6 +211,14 @@ export function DeckView({ deckId }: { deckId: string }) {
           <Icon.Plus className="size-7" />
         </a>
       </div>
+      {pdfOpen && (
+        <PdfExportDialog
+          deckId={deck.id}
+          deckName={deck.name}
+          cardCount={cards.length}
+          onClose={() => setPdfOpen(false)}
+        />
+      )}
     </>
   );
 }

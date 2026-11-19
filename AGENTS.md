@@ -4,9 +4,9 @@ Mobile-first flash card PWA (Android Chrome target). User creates own cards (pho
 
 ## Layout
 
-- `src/lib/` — pure logic + storage: `srs.ts` (scheduling), `session.ts` (study queue/undo/stats), `db.ts` (Dexie schema: `decks`, `cards`, `images` Blobs), `backup.ts` (zip export/import), `crop.ts` (full-resolution photo crop/rotate math & canvas export), `stats.ts`, `router.ts` (hash router for GitHub Pages), `i18n.tsx` (de + uk strings).
+- `src/lib/` — pure logic + storage: `srs.ts` (scheduling), `session.ts` (study queue/undo/stats), `db.ts` (Dexie schema: `decks`, `cards`, `images` Blobs), `backup.ts` (zip export/import), `crop.ts` (full-resolution photo crop/rotate math & canvas export), `pdf.ts` (lazy-loaded offline A4 PDF export with Noto Sans Latin+Cyrillic), `stats.ts`, `router.ts` (hash router for GitHub Pages), `i18n.tsx` (de + uk strings).
 - `src/screens/` — `Home`, `DeckView`, `CardEditor`, `Study`, `Settings`.
-- `src/components/` — `SwipeCard` (pointer-event swipe + 3D flip), `ImageCropper` (fullscreen photo trim/rotate modal), `DeckForm`, `ui.tsx` (Header, Button, icons).
+- `src/components/` — `SwipeCard` (pointer-event swipe + 3D flip), `ImageCropper` (fullscreen photo trim/rotate modal), `PdfExportDialog` (study sheet & printable 2×4 cards export), `DeckForm`, `ui.tsx` (Header, Button, icons).
 - `public/` — icons (generated from `icon.svg` via `pnpm exec pwa-assets-generator --preset minimal-2023 public/icon.svg`).
 
 ## Rules

@@ -212,6 +212,13 @@ export const Icon = {
       <line x1="12" x2="12" y1="15" y2="3" />
     </svg>
   ),
+  FileText: (p: SVGProps<SVGSVGElement>) => (
+    <svg {...base(p)}>
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M10 9H8M16 13H8M16 17H8" />
+    </svg>
+  ),
   Crop: (p: SVGProps<SVGSVGElement>) => (
     <svg {...base(p)}>
       <path d="M6 2v14a2 2 0 0 0 2 2h14" />

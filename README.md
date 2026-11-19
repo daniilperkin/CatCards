@@ -7,7 +7,7 @@ Mobile-first flash card PWA: create your own cards with photos, tap to flip, swi
 - Decks, per-deck progress (% mastered), "Alle fälligen lernen" (study all due cards) across decks.
 - Study options: shuffle, reverse mode, undo, study only "don't know" cards, session stats.
 - UI in German and Ukrainian; card text can be in any language (Cyrillic, umlauts …).
-- Backup: export/import a `.zip` (data + photos). On Android, export opens the share sheet.
+- Backup & export: export/import a `.zip` backup (data + full-res photos), or export any deck as an offline A4 `.pdf` (Study Sheet or double-sided 2×4 printable flashcards). On Android, exports open the share sheet.
 
 ## Use on the phone
 
