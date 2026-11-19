@@ -36,7 +36,7 @@ export function DeckForm({
         aria-label={t.deckName}
         className="h-12 w-full rounded-xl bg-pink-50/70 px-3 text-base outline-none focus:ring-2 focus:ring-accent dark:bg-[#191118]"
       />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex items-center justify-between gap-1">
         {DECK_COLORS.map((c) => (
           <button
             key={c}
@@ -44,7 +44,7 @@ export function DeckForm({
             aria-label={c}
             aria-pressed={c === color}
             onClick={() => setColor(c)}
-            className={`size-9 rounded-full transition ${c === color ? 'ring-2 ring-zinc-900 ring-offset-2 dark:ring-white dark:ring-offset-zinc-800' : ''}`}
+            className={`size-8 shrink-0 rounded-full transition min-[420px]:size-9 ${c === color ? 'ring-2 ring-zinc-900 ring-offset-2 dark:ring-white dark:ring-offset-zinc-800' : ''}`}
             style={{ background: c }}
           />
         ))}

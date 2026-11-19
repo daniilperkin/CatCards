@@ -72,7 +72,8 @@ export function IconButton({
   className = '',
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
-  // Default colours only when the caller doesn't set its own (Tailwind can't resolve conflicting classes by order).
+  // Default size & colours only when the caller doesn't set its own (Tailwind can't resolve conflicting classes by order).
+  const size = /(^|\s)size-/.test(className) ? '' : 'size-10';
   const text = /(^|\s)text-/.test(className) ? '' : 'text-zinc-700 dark:text-zinc-300';
   const hover = /(^|\s)hover:bg-/.test(className) ? '' : 'hover:bg-zinc-200 dark:hover:bg-zinc-800';
   return (
@@ -80,7 +81,7 @@ export function IconButton({
       type="button"
       aria-label={label}
       title={label}
-      className={`grid size-10 place-items-center rounded-full ${text} ${hover} ${className}`}
+      className={`grid place-items-center rounded-full ${size} ${text} ${hover} ${className}`}
       {...rest}
     >
       {children}
@@ -209,6 +210,18 @@ export const Icon = {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" x2="12" y1="15" y2="3" />
+    </svg>
+  ),
+  Crop: (p: SVGProps<SVGSVGElement>) => (
+    <svg {...base(p)}>
+      <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+      <path d="M18 22V8a2 2 0 0 0-2-2H2" />
+    </svg>
+  ),
+  RotateCw: (p: SVGProps<SVGSVGElement>) => (
+    <svg {...base(p)}>
+      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
     </svg>
   ),
   Paw: (p: SVGProps<SVGSVGElement>) => (

@@ -57,18 +57,18 @@ export function Settings() {
       <main className="safe-bottom flex-1 space-y-4 px-4 pb-6">
         <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-pink-200/80 dark:bg-[#261a24] dark:ring-pink-900/50">
           <h2 className="text-sm font-semibold tracking-wide text-zinc-500 uppercase">{t.theme}</h2>
-          <div className="grid grid-cols-3 gap-1 rounded-xl bg-pink-50/80 p-1 dark:bg-[#191118]">
+          <div className="flex gap-1 rounded-xl bg-pink-50/80 p-1 dark:bg-[#191118]">
             {themes.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 aria-pressed={theme === item.id}
                 onClick={() => setTheme(item.id)}
-                className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium transition ${
+                className={`inline-flex min-h-11 flex-auto items-center justify-center gap-1.5 rounded-lg px-2.5 text-sm font-medium whitespace-nowrap transition ${
                   theme === item.id ? 'bg-white shadow-sm dark:bg-[#352232]' : 'text-zinc-500'
                 }`}
               >
-                {item.id === 'pink' && <Icon.Paw className="size-4 text-accent" />}
+                {item.id === 'pink' && <Icon.Paw className="size-4 shrink-0 text-accent" />}
                 {item.label}
               </button>
             ))}

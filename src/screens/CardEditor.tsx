@@ -1,6 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState } from 'react';
+import { ImageCropper } from '../components/ImageCropper';
 import { Button, Header, Icon, IconButton } from '../components/ui';
+import { type CropRect, FULL_CROP, isIdentityCrop, type Rotation } from '../lib/crop';
 import { db, deleteCard, upsertCard } from '../lib/db';
 import { useI18n } from '../lib/i18n';
 import { href, navigate } from '../lib/router';
@@ -181,11 +183,47 @@ function SideEditor({
   const storedUrl = useImageUrl(state.image === undefined ? storedImageId : null);
   const pickedUrl = useBlobUrl(state.image instanceof Blob ? state.image : null);
   const url = pickedUrl ?? storedUrl;
+  const [cropSession, setCropSession] = useState<{
+    source: Blob;
+    initialCrop: CropRect;
+    initialRotation: Rotation;
+    isStored: boolean;
+  } | null>(null);
+  const [originalPick, setOriginalPick] = useState<{
+    source: Blob;
+    crop: CropRect;
+    rotation: Rotation;
+    isStored: boolean;
+  } | null>(null);
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) onChange({ ...state, image: f });
+    if (f) {
+      setCropSession({ source: f, initialCrop: FULL_CROP, initialRotation: 0, isStored: false });
+    }
     e.target.value = '';
+  };
+
+  const openCrop = async () => {
+    if (originalPick) {
+      setCropSession({
+        source: originalPick.source,
+        initialCrop: originalPick.crop,
+        initialRotation: originalPick.rotation,
+        isStored: originalPick.isStored,
+      });
+      return;
+    }
+    if (state.image instanceof Blob) {
+      setCropSession({ source: state.image, initialCrop: FULL_CROP, initialRotation: 0, isStored: false });
+      return;
+    }
+    if (state.image === undefined && storedImageId) {
+      const row = await db.images.get(storedImageId);
+      if (row?.blob) {
+        setCropSession({ source: row.blob, initialCrop: FULL_CROP, initialRotation: 0, isStored: true });
+      }
+    }
   };
 
   return (
@@ -194,15 +232,45 @@ function SideEditor({
       {url ? (
         <div className="relative overflow-hidden rounded-xl bg-pink-50/60 dark:bg-[#191118]">
           <img src={url} alt="" className="max-h-80 w-full object-contain" />
-          <IconButton
-            label={t.removePhoto}
-            onClick={() => onChange({ ...state, image: null })}
-            className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 dark:text-white"
-          >
-            <Icon.X className="size-5" />
-          </IconButton>
+          <div className="absolute top-2 right-2 flex gap-1.5">
+            <IconButton
+              label={t.cropPhoto}
+              onClick={openCrop}
+              className="bg-black/55 text-white hover:bg-black/75 dark:text-white"
+            >
+              <Icon.Crop className="size-5" />
+            </IconButton>
+            <IconButton
+              label={t.removePhoto}
+              onClick={() => {
+                setOriginalPick(null);
+                onChange({ ...state, image: null });
+              }}
+              className="bg-black/55 text-white hover:bg-black/75 dark:text-white"
+            >
+              <Icon.X className="size-5" />
+            </IconButton>
+          </div>
         </div>
       ) : null}
+      {cropSession && (
+        <ImageCropper
+          source={cropSession.source}
+          initialCrop={cropSession.initialCrop}
+          initialRotation={cropSession.initialRotation}
+          onCancel={() => setCropSession(null)}
+          onApply={(blob, crop, rotation) => {
+            if (cropSession.isStored && isIdentityCrop(crop, rotation)) {
+              setOriginalPick(null);
+              onChange({ ...state, image: undefined });
+            } else {
+              setOriginalPick({ source: cropSession.source, crop, rotation, isStored: cropSession.isStored });
+              onChange({ ...state, image: blob });
+            }
+            setCropSession(null);
+          }}
+        />
+      )}
       <div className="grid grid-cols-2 gap-2">
         <Button onClick={() => cameraRef.current?.click()}>
           <Icon.Camera className="size-5" />

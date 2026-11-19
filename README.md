@@ -3,7 +3,7 @@
 Mobile-first flash card PWA: create your own cards with photos, tap to flip, swipe **right = know**, **left = don't know**. Spaced repetition decides when a card comes back.
 
 - Offline, no account: everything is stored in the browser (IndexedDB) on your phone; photos are kept full-size.
-- Card front: photo and/or text. Back: text and/or photo. You can take photos with the camera or pick them from the gallery.
+- Card front: photo and/or text. Back: text and/or photo. You can take photos with the camera or pick them from the gallery, and trim/rotate them right in the editor.
 - Decks, per-deck progress (% mastered), "Alle fälligen lernen" (study all due cards) across decks.
 - Study options: shuffle, reverse mode, undo, study only "don't know" cards, session stats.
 - UI in German and Ukrainian; card text can be in any language (Cyrillic, umlauts …).
